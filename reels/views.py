@@ -1,6 +1,13 @@
 from rest_framework import generics, permissions
 from .models import Reel
 from .serializers import ReelSerializer
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import permissions
+from .models import Reel, ReelLike
+from .models import Comment
+from .serializers import CommentSerializer
+from rest_framework import generics
 
 
 class ReelListView(generics.ListAPIView):
@@ -17,3 +24,50 @@ class ReelCreateView(generics.CreateAPIView):
     def perform_create(self, serializer):
         serializer.save(creator=self.request.user)
         
+        
+        
+class ToggleLikeView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, reel_id):
+
+        reel = Reel.objects.get(id=reel_id)
+
+        like, created = ReelLike.objects.get_or_create(
+            user=request.user,
+            reel=reel
+        )
+
+        if created:
+            reel.likes += 1
+            reel.save()
+            return Response({"message": "Liked"})
+
+        like.delete()
+        reel.likes -= 1
+        reel.save()
+
+        return Response({"message": "Unliked"})
+    
+
+class CommentListView(generics.ListAPIView):
+
+    serializer_class = CommentSerializer
+
+    def get_queryset(self):
+        reel_id = self.kwargs["reel_id"]
+        return Comment.objects.filter(reel_id=reel_id).order_by("-created_at")
+    
+
+class CommentCreateView(generics.CreateAPIView):
+
+    serializer_class = CommentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        reel_id = self.kwargs["reel_id"]
+
+        serializer.save(
+            user=self.request.user,
+            reel_id=reel_id
+        )

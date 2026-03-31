@@ -26,3 +26,38 @@ class Reel(models.Model):
 
     def __str__(self):
         return self.title
+    
+
+class ReelLike(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    reel = models.ForeignKey(
+        Reel,
+        on_delete=models.CASCADE,
+        related_name="reel_likes"
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "reel")
+        
+
+class Comment(models.Model):
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE
+    )
+
+    reel = models.ForeignKey(
+        Reel,
+        on_delete=models.CASCADE,
+        related_name="comments"
+    )
+
+    text = models.TextField()
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.phone} - {self.text[:20]}"
