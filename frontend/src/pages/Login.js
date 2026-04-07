@@ -14,13 +14,18 @@ export default function Login() {
         phone,
         password,
       });
-
+      console.log("LOGIN RESPONSE:", res.data);
       localStorage.setItem("token", res.data.access);
 
       navigate("/feed");
     } catch (error) {
-        console.log(error.response);
-        alert(JSON.stringify(error.response.data));
+        console.log(error);
+
+        if (error.response) {
+            alert(JSON.stringify(error.response.data));
+        } else {
+            alert("Server not reachable or backend not running");
+        }
     }
   };
 

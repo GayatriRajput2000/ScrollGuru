@@ -6,14 +6,20 @@ export default function Register() {
   const [password, setPassword] = useState("");
 
   const registerUser = async () => {
-    await API.post("users/create/", {
-      phone,
-      password,
-    });
+  await API.post("users/create/", {
+    phone,
+    password,
+  });
 
-    alert("User Created");
-  };
+  const res = await API.post("token/", {
+    phone,
+    password,
+  });
 
+  localStorage.setItem("token", res.data.access);
+
+  window.location.href = "/feed";
+};
   return (
     <div>
       <h2>Register</h2>
