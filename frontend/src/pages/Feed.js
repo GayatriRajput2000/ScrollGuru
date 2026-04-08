@@ -11,36 +11,35 @@ export default function Feed() {
   const [likedAnimation, setLikedAnimation] = useState(null);
   const [page, setPage] = useState(1);  
 
-    useEffect(() => {
-        loadReels();
-    }, [page]);
+  useEffect(() => {
+    loadReels();
+  }, [page]);
 
-    useEffect(() => {
+  useEffect(() => {
     const observer = new IntersectionObserver(
-        (entries) => {
+      (entries) => {
         entries.forEach((entry) => {
-            const video = entry.target.querySelector("video");
-
-            if (entry.isIntersecting) {
+          const video = entry.target.querySelector("video");
+          if (entry.isIntersecting) {
             video?.play();
-            } else {
+          } else {
             video?.pause();
-            }
+          }
         });
-        },
-        { threshold: 0.7 }
+      },
+      { threshold: 0.7 }
     );
 
     document.querySelectorAll(".reel-item").forEach((el) => {
-        observer.observe(el);
+      observer.observe(el);
     });
 
     return () => observer.disconnect();
-    }, [reels]);
+  }, [reels]);
 
   const loadReels = async () => {
     try {
-      const res = await API.get("reels/?page=${page}");
+      const res = await API.get(`reels/?page=${page}`);
       setReels((prev) => [...prev, ...res.data]);
       console.log("Reels loaded successfully:", res.data);
     } catch (err) {
@@ -80,105 +79,161 @@ export default function Feed() {
   };
 
   // Add Comment
-    const addComment = async (reelId) => {
-        if (!commentText.trim()) return;
+  const addComment = async (reelId) => {
+    if (!commentText.trim()) return;
 
-        try {
-        await API.post(`reels/${reelId}/comments/create/`, {
-            text: commentText,
-        });
-        setCommentText("");
-        loadComments(reelId);
-        } catch (err) {
-        console.error("Add Comment Error:", err);
-        }
-    };
-    const handleDoubleTap = (id) => {
-        likeReel(id);
+    try {
+      await API.post(`reels/${reelId}/comments/create/`, {
+        text: commentText,
+      });
+      setCommentText("");
+      loadComments(reelId);
+    } catch (err) {
+      console.error("Add Comment Error:", err);
+    }
+  };
 
-        setLikedAnimation(id);
-        setTimeout(() => setLikedAnimation(null), 800);
-    };
+  const handleDoubleTap = (id) => {
+    likeReel(id);
+    setLikedAnimation(id);
+    setTimeout(() => setLikedAnimation(null), 800);
+  };
 
-    useEffect(() => {
+  useEffect(() => {
     const handleScroll = () => {
-        if (
+      if (
         window.innerHeight + window.scrollY >=
         document.body.offsetHeight - 200
-        ) {
+      ) {
         setPage((prev) => prev + 1);
-        }
+      }
     };
 
     window.addEventListener("scroll", handleScroll);
-
     return () => window.removeEventListener("scroll", handleScroll);
-    }, []);
+  }, []);
 
-
-
-
-    return (
+  return (
     <>
+      {/* Heart Animation CSS */}
+      <style>
+        {`
+          @keyframes popHeart {
+            0% { 
+              transform: translate(-50%, -50%) scale(0.3); 
+              opacity: 0; 
+            }
+            40% { 
+              transform: translate(-50%, -50%) scale(1.2); 
+            }
+            100% { 
+              transform: translate(-50%, -50%) scale(1); 
+              opacity: 0; 
+            }
+          }
+        `}
+      </style>
+
       <div style={styles.container}>
         {reels.length === 0 ? (
-          <p style={{ color: "white", textAlign: "center" }}>
-            No reels uploaded yet 🚀
-          </p>
+          <div style={styles.emptyState}>
+            <p style={{ fontSize: "18px" }}>No reels uploaded yet 🚀</p>
+            <p style={{ fontSize: "14px", opacity: 0.6, marginTop: "8px" }}>
+              Be the first to upload!
+            </p>
+          </div>
         ) : (
           reels.map((reel) => (
-            <div className="reel-item"
-                style={{ position: "relative" }}
-                onDoubleClick={() => handleDoubleTap(reel.id)}
+            <div
+              key={reel.id}
+              className="reel-item"
+              style={styles.reelContainer}
+              onDoubleClick={() => handleDoubleTap(reel.id)}
             >
-              
               {/* VIDEO */}
               <video
                 loop
                 muted
-                playsInline            
+                playsInline
                 controls
                 width="100%"
-                style={{ maxHeight: "80vh", objectFit: "cover" }}
+                style={styles.video}
               >
                 <source src={`http://127.0.0.1:8000${reel.video}`} />
               </video>
-            
-                {likedAnimation === reel.id && (
-                    <div style={styles.heart}>❤️</div>
+
+              {/* Double Tap Heart Animation */}
+              {likedAnimation === reel.id && (
+                <div style={styles.heartAnimation}>❤️</div>
+              )}
+
+              {/* Bottom Gradient Overlay */}
+              <div style={styles.bottomGradient} />
+
+              {/* Main Overlay Content */}
+              <div style={styles.overlay}>
+                {/* Creator Info */}
+                <div style={styles.creatorRow}>
+                  <div style={styles.creatorAvatar}>👤</div>
+                  <div style={styles.creatorInfo}>
+                    <div style={styles.creatorName}>
+                      {reel.creator?.phone || "Creator"}
+                    </div>
+                    <div style={styles.title}>{reel.title}</div>
+                  </div>
+                </div>
+
+                {/* Description */}
+                {reel.description && (
+                  <p style={styles.description}>{reel.description}</p>
                 )}
 
+                {/* Action Buttons */}
+                <div style={styles.actions}>
+                  <button 
+                    onClick={() => likeReel(reel.id)} 
+                    style={styles.actionButton}
+                  >
+                    ❤️ <span style={styles.actionCount}>{reel.likes || 0}</span>
+                  </button>
 
-              {/* OVERLAY CONTENT */}
-              <div style={styles.overlay}>
-                <h3>{reel.title}</h3>
-                <p>{reel.description}</p>
+                  <button 
+                    onClick={() => loadComments(reel.id)} 
+                    style={styles.actionButton}
+                  >
+                    💬
+                  </button>
 
-                <button onClick={() => likeReel(reel.id)}>
-                  ❤️ {reel.likes || 0}
-                </button>
+                  <button style={styles.actionButton}>🔗</button>
+                </div>
+              </div>
 
-                <button onClick={() => loadComments(reel.id)}>
-                  💬 Comments
-                </button>
+              {/* Comments Preview */}
+              {comments[reel.id] && comments[reel.id].length > 0 && (
+                <div style={styles.commentsPreview}>
+                  {comments[reel.id].slice(0, 2).map((c) => (
+                    <p key={c.id} style={styles.commentText}>
+                      <b>{c.user_phone}</b>: {c.text}
+                    </p>
+                  ))}
+                </div>
+              )}
 
-                {comments[reel.id]?.map((c) => (
-                  <p key={c.id}>
-                    <b>{c.user_phone}</b>: {c.text}
-                  </p>
-                ))}
-
+              {/* Comment Input Bar */}
+              <div style={styles.commentBar}>
                 <input
-                  placeholder="Write comment..."
+                  placeholder="Add a comment..."
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
+                  style={styles.commentInput}
                 />
-
-                <button onClick={() => addComment(reel.id)}>
+                <button 
+                  onClick={() => addComment(reel.id)}
+                  style={styles.sendButton}
+                >
                   Send
                 </button>
               </div>
-
             </div>
           ))
         )}
@@ -192,16 +247,18 @@ export default function Feed() {
 
 const styles = {
   container: {
-    height: "100vh",
+    background: "#000",
+    minHeight: "100vh",
     overflowY: "scroll",
     scrollSnapType: "y mandatory",
-    background: "black",
+    paddingBottom: "80px",
   },
 
-  reel: {
+  reelContainer: {
     height: "100vh",
     scrollSnapAlign: "start",
     position: "relative",
+    background: "#000",
   },
 
   video: {
@@ -210,22 +267,160 @@ const styles = {
     objectFit: "cover",
   },
 
+  bottomGradient: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: "45%",
+    background: "linear-gradient(transparent, rgba(0,0,0,0.9))",
+    pointerEvents: "none",
+  },
+
   overlay: {
     position: "absolute",
-    bottom: "90px",
-    left: "20px",
-    color: "white",
-    background: "rgba(0,0,0,0.4)",
-    padding: "10px",
-    borderRadius: "10px",
-    maxWidth: "90%",
+    bottom: "110px",
+    left: "16px",
+    right: "16px",
+    zIndex: 3,
+    color: "#fff",
   },
-  heart: {
+
+  creatorRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    marginBottom: "8px",
+  },
+
+  creatorAvatar: {
+    width: "40px",
+    height: "40px",
+    borderRadius: "50%",
+    background: "linear-gradient(135deg, #f56040, #c13584)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "22px",
+    border: "3px solid #fff",
+  },
+
+  creatorInfo: {
+    flex: 1,
+  },
+
+  creatorName: {
+    fontWeight: "600",
+    fontSize: "15px",
+  },
+
+  title: {
+    fontSize: "16px",
+    fontWeight: "700",
+    marginTop: "2px",
+  },
+
+  description: {
+    fontSize: "14.5px",
+    lineHeight: "1.4",
+    margin: "8px 0 12px",
+    opacity: 0.95,
+  },
+
+  actions: {
+    display: "flex",
+    gap: "22px",
+  },
+
+  actionButton: {
+    background: "none",
+    border: "none",
+    color: "#fff",
+    fontSize: "28px",
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+    padding: "4px 8px",
+    cursor: "pointer",
+  },
+
+  actionCount: {
+    fontSize: "15px",
+    fontWeight: "500",
+  },
+
+  heartAnimation: {
     position: "absolute",
-    top: "50%",
+    top: "45%",
     left: "50%",
     transform: "translate(-50%, -50%)",
-    fontSize: "80px",
-    animation: "pop 0.8s ease",
-    },
+    fontSize: "110px",
+    zIndex: 10,
+    pointerEvents: "none",
+    animation: "popHeart 0.8s ease forwards",
+  },
+
+  commentsPreview: {
+    position: "absolute",
+    bottom: "165px",
+    left: "16px",
+    right: "16px",
+    background: "rgba(0,0,0,0.65)",
+    padding: "10px 14px",
+    borderRadius: "12px",
+    fontSize: "13.5px",
+    maxHeight: "90px",
+    overflowY: "auto",
+    zIndex: 2,
+  },
+
+  commentText: {
+    margin: "4px 0",
+    lineHeight: "1.3",
+  },
+
+  commentBar: {
+    position: "absolute",
+    bottom: "68px",
+    left: "16px",
+    right: "16px",
+    background: "rgba(30,30,30,0.85)",
+    borderRadius: "30px",
+    padding: "6px 10px",
+    display: "flex",
+    alignItems: "center",
+    zIndex: 5,
+    border: "1px solid rgba(255,255,255,0.1)",
+  },
+
+  commentInput: {
+    flex: 1,
+    background: "transparent",
+    border: "none",
+    outline: "none",
+    color: "#fff",
+    padding: "8px 12px",
+    fontSize: "15px",
+  },
+
+  sendButton: {
+    background: "#0095f6",
+    color: "#fff",
+    border: "none",
+    padding: "8px 20px",
+    borderRadius: "20px",
+    fontWeight: "600",
+    fontSize: "14px",
+    cursor: "pointer",
+  },
+
+  emptyState: {
+    height: "100vh",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
+    color: "#aaa",
+    textAlign: "center",
+  },
 };
