@@ -115,7 +115,7 @@ const styles = {
 
   card: {
     background: "#111",
-    width: "100%",
+    width: "50%",
     maxWidth: "380px",
     borderRadius: "20px",
     padding: "40px 24px",
@@ -157,8 +157,8 @@ const styles = {
   },
 
   input: {
-    width: "100%",
-    padding: "16px 18px",
+    width: "80%",
+    padding: "15px 16px",
     background: "#1a1a1a",
     border: "1px solid #444",
     borderRadius: "12px",
@@ -170,7 +170,7 @@ const styles = {
 
   loginButton: {
     width: "100%",
-    padding: "16px",
+    padding: "15px",
     background: "linear-gradient(90deg, #f56040, #c13584)",
     color: "#fff",
     border: "none",
