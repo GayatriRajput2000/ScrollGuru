@@ -1,5 +1,5 @@
 from rest_framework import generics, permissions
-from .models import Reel
+from .models import Follow, Reel, User
 from .serializers import ReelSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -8,6 +8,10 @@ from .models import Reel, ReelLike
 from .models import Comment
 from .serializers import CommentSerializer
 from rest_framework import generics
+from rest_framework.decorators import action
+from rest_framework.response import Response
+
+
 
 
 class ReelListView(generics.ListAPIView):
@@ -30,9 +34,7 @@ class ToggleLikeView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, reel_id):
-
         reel = Reel.objects.get(id=reel_id)
-
         like, created = ReelLike.objects.get_or_create(
             user=request.user,
             reel=reel
@@ -71,3 +73,26 @@ class CommentCreateView(generics.CreateAPIView):
             user=self.request.user,
             reel_id=reel_id
         )
+        
+class CreatorReelListView(generics.ListAPIView):
+    serializer_class = ReelSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user_id = self.kwargs["user_id"]
+        return Reel.objects.filter(
+            creator_id=user_id
+        ).order_by("-created_at")
+        
+    
+    
+@action(detail=True, methods=["post"])
+def follow(self, request, pk=None):
+    user_to_follow = User.objects.get(pk=pk)
+
+    Follow.objects.get_or_create(
+        follower=request.user,
+        following=user_to_follow
+    )
+
+    return Response({"status":"followed"})

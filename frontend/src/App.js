@@ -6,6 +6,8 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Feed from "./pages/Feed";
 import Upload from "./pages/Upload";
+import Profile from "./pages/Profile";
+import CreatorProfile from "./pages/CreatorProfile";
 
 function App() {
   return (
@@ -37,7 +39,8 @@ function App() {
             </PrivateRoute>
           }
         />
-
+        <Route path="/profile" element={<Profile />} /> {/* ✅ */}
+        <Route path="/creator/:id" element={<CreatorProfile />} />
       </Routes>
     </BrowserRouter>
   );

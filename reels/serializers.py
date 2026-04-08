@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Reel,ReelLike,Comment
+from reels.models import Reel, ReelLike, Comment
 
 
 class ReelSerializer(serializers.ModelSerializer):

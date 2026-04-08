@@ -5,6 +5,7 @@ from .views import (
     ToggleLikeView,
     CommentListView,
     CommentCreateView,
+    CreatorReelListView,
 )
 
 urlpatterns = [
@@ -13,5 +14,5 @@ urlpatterns = [
     path("<int:reel_id>/like/", ToggleLikeView.as_view()),
     path("<int:reel_id>/comments/", CommentListView.as_view()),
     path("<int:reel_id>/comment/", CommentCreateView.as_view()),
-
+    path("creator/<int:user_id>/", CreatorReelListView.as_view()),
 ]
