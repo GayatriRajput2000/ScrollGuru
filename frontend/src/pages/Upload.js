@@ -1,25 +1,53 @@
 import { useState } from "react";
 import API from "../api/axios";
+import { useNavigate } from "react-router-dom";
 
 export default function Upload() {
   const [title, setTitle] = useState("");
   const [video, setVideo] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  const navigate = useNavigate();
 
   const uploadReel = async () => {
-    const formData = new FormData();
+    if (!title.trim() || !video) {
+      alert("Please enter title and select a video");
+      return;
+    }
 
-    formData.append("title", title);
-    formData.append("video", video);
-    formData.append("category", "learning");
+    setUploading(true);
 
-    await API.post("reels/create/", formData);
+    try {
+      const formData = new FormData();
+      formData.append("title", title);
+      formData.append("video", video);
+      formData.append("category", "learning");   // aap change kar sakti ho
 
-    alert("Uploaded");
+      const res = await API.post("reels/create/", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      setSuccess(true);
+      
+      // 1.5 second baad Feed page pe le jao
+      setTimeout(() => {
+        alert("✅ Reel Uploaded Successfully!");
+        navigate("/feed");
+      }, 1500);
+
+    } catch (err) {
+      console.error("Upload Error:", err.response?.data || err);
+      alert("Upload failed! Please try again.");
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
     <div style={styles.container}>
-      {/* Header */}
       <div style={styles.header}>
         <h1 style={styles.title}>Upload Reel</h1>
         <p style={styles.subtitle}>Share your knowledge with the world 🔥</p>
@@ -42,12 +70,10 @@ export default function Upload() {
         <div style={styles.inputGroup}>
           <label style={styles.label}>Upload Video</label>
           
-          <div 
-            style={{
-              ...styles.uploadBox,
-              borderColor: video ? "#00ff9d" : "#555"
-            }}
-          >
+          <div style={{
+            ...styles.uploadBox,
+            borderColor: video ? "#00ff9d" : "#555"
+          }}>
             <input
               type="file"
               accept="video/*"
@@ -78,15 +104,17 @@ export default function Upload() {
         {/* Upload Button */}
         <button 
           onClick={uploadReel}
-          disabled={!title.trim() || !video}
+          disabled={!title.trim() || !video || uploading}
           style={{
             ...styles.uploadButton,
-            opacity: (!title.trim() || !video) ? 0.6 : 1,
-            cursor: (!title.trim() || !video) ? "not-allowed" : "pointer"
+            opacity: (!title.trim() || !video || uploading) ? 0.6 : 1,
+            cursor: (!title.trim() || !video || uploading) ? "not-allowed" : "pointer"
           }}
         >
-          🚀 Upload Reel
+          {uploading ? "Uploading..." : "🚀 Upload Reel"}
         </button>
+
+        {success && <p style={styles.successText}>Reel uploaded successfully! Redirecting...</p>}
 
         <p style={styles.note}>
           Your reel will be visible to everyone after upload
@@ -159,7 +187,6 @@ const styles = {
     background: "#0a0a0a",
     overflow: "hidden",
     cursor: "pointer",
-    transition: "all 0.3s ease",
   },
 
   fileInput: {
@@ -179,39 +206,12 @@ const styles = {
     width: "100%",
   },
 
-  uploadIcon: {
-    fontSize: "48px",
-    marginBottom: "12px",
-  },
-
-  successIcon: {
-    fontSize: "42px",
-    marginBottom: "10px",
-  },
-
-  uploadText: {
-    fontSize: "17px",
-    fontWeight: "600",
-    margin: "0 0 6px 0",
-  },
-
-  uploadSubtext: {
-    fontSize: "13px",
-    color: "#777",
-  },
-
-  fileName: {
-    fontSize: "15px",
-    fontWeight: "600",
-    wordBreak: "break-all",
-    padding: "0 20px",
-  },
-
-  fileSize: {
-    fontSize: "13px",
-    color: "#00ff9d",
-    marginTop: "4px",
-  },
+  uploadIcon: { fontSize: "48px", marginBottom: "12px" },
+  successIcon: { fontSize: "42px", marginBottom: "10px" },
+  uploadText: { fontSize: "17px", fontWeight: "600", margin: "0 0 6px 0" },
+  uploadSubtext: { fontSize: "13px", color: "#777" },
+  fileName: { fontSize: "15px", fontWeight: "600", wordBreak: "break-all", padding: "0 20px" },
+  fileSize: { fontSize: "13px", color: "#00ff9d", marginTop: "4px" },
 
   uploadButton: {
     width: "100%",
@@ -223,13 +223,19 @@ const styles = {
     fontSize: "17px",
     fontWeight: "700",
     marginTop: "20px",
-    transition: "all 0.3s ease",
+  },
+
+  successText: {
+    textAlign: "center",
+    color: "#00ff9d",
+    marginTop: "15px",
+    fontWeight: "600",
   },
 
   note: {
     textAlign: "center",
     fontSize: "13px",
     color: "#666",
-    marginTop: "20px",
+    marginTop: "25px",
   },
 };
