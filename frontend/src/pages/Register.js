@@ -2,11 +2,36 @@ import { useState } from "react";
 import API from "../api/axios";
 
 export default function Register() {
-  const [phone, setPhone] = useState("");
-  const [password, setPassword] = useState("");
+    const [phone, setPhone] = useState("");
+    const [password, setPassword] = useState("");
 
-  const registerUser = async () => {
-    await API.post("users/create/", { phone, password });
+    const registerUser = async () => {
+    const registerUser = async () => {
+        try {
+            const formData = new FormData();
+
+            formData.append("phone", phone);
+            formData.append("password", password);
+
+            await API.post("users/create/", formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+            });
+
+            // login after register
+            const res = await API.post("token/", {
+            phone,
+            password,
+            });
+
+            localStorage.setItem("token", res.data.access);
+            window.location.href = "/feed";
+        } catch (err) {
+            console.log(err.response?.data);
+            alert("Registration failed");
+        }
+        };
 
     const res = await API.post("token/", { phone, password });
 
@@ -346,7 +371,7 @@ const styles = {
   },
   input: {
     width: "100%",
-    padding: "15px 16px 15px 46px",
+    padding: "15px 16px 15px 20px",
     background: "rgba(255,255,255,0.04)",
     border: "1px solid rgba(255,255,255,0.08)",
     borderRadius: "14px",

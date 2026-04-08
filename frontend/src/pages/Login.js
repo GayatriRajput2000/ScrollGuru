@@ -366,7 +366,7 @@ const styles = {
   },
   input: {
     width: "100%",
-    padding: "15px 16px 15px 46px",
+    padding: "15px 16px 15px 20px",
     background: "rgba(255,255,255,0.04)",
     border: "1px solid rgba(255,255,255,0.08)",
     borderRadius: "14px",
