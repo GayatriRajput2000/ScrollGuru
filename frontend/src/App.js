@@ -8,6 +8,7 @@ import Feed from "./pages/Feed";
 import Upload from "./pages/Upload";
 import Profile from "./pages/Profile";
 import CreatorProfile from "./pages/CreatorProfile";
+import CreatePost from "./pages/CreatePost";
 
 function App() {
   return (
@@ -39,8 +40,33 @@ function App() {
             </PrivateRoute>
           }
         />
-        <Route path="/profile" element={<Profile />} /> {/* ✅ */}
-        <Route path="/creator/:id" element={<CreatorProfile />} />
+
+        <Route
+          path="/create-post"
+          element={
+            <PrivateRoute>
+              <CreatePost />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/profile"
+          element={
+            <PrivateRoute>
+              <Profile />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/creator/:id"
+          element={
+            <PrivateRoute>
+              <CreatorProfile />
+            </PrivateRoute>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );
