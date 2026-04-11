@@ -378,7 +378,6 @@ export default function Feed() {
 
         .ig-layout {
           width: min(1320px, 100%);
-          margin: 0 auto;
           display: grid;
           grid-template-columns: 245px minmax(0, 630px) 320px;
           gap: 28px;
@@ -734,6 +733,8 @@ export default function Feed() {
           top: 28px;
           height: fit-content;
           padding-top: 36px;
+          padding-left: 100px;
+          width: 150%;
         }
 
         .ig-profile {

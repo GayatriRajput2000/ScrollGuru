@@ -12,6 +12,20 @@ export default function Upload() {
 
   const navigate = useNavigate();
 
+  // Get current user ID from JWT token
+  const getCurrentUserId = () => {
+    const token = localStorage.getItem("token");
+    if (!token) return null;
+    
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.user_id || payload.id || null; // Change if your token uses different key
+    } catch (e) {
+      console.error("Token decode error:", e);
+      return null;
+    }
+  };
+
   useEffect(() => {
     if (!video) {
       setPreview("");
@@ -45,6 +59,13 @@ export default function Upload() {
       return;
     }
 
+    const userId = getCurrentUserId();
+    if (!userId) {
+      setError("Please login again. Session expired.");
+      navigate("/login");
+      return;
+    }
+
     try {
       setUploading(true);
       setError("");
@@ -54,8 +75,8 @@ export default function Upload() {
       formData.append("title", title.trim());
       formData.append("video", video);
       formData.append("category", "learning");
+      formData.append("creator", userId);   // ← Fixed: Sending creator
 
-      // IMPORTANT: don't set multipart/form-data header manually
       await API.post("/reels/create/", formData);
 
       setSuccess(true);
@@ -64,19 +85,33 @@ export default function Upload() {
         navigate("/feed");
       }, 1400);
     } catch (err) {
-      console.error("Upload Error:", err.response?.data || err);
+      console.error("Upload Error Full Response:", err.response);
 
-      const backendError =
-        err.response?.data?.message ||
-        err.response?.data?.detail ||
-        err.response?.data?.error ||
-        "Upload failed! Please try again.";
+      let errorMsg = "Upload failed! Please try again.";
 
-      setError(
-        typeof backendError === "string"
-          ? backendError
-          : "Upload failed! Please try again."
-      );
+      if (err.response?.data) {
+        const data = err.response.data;
+
+        if (typeof data === "string") {
+          errorMsg = data;
+        } else if (data.detail) {
+          errorMsg = data.detail;
+        } else if (data.creator) {
+          errorMsg = Array.isArray(data.creator) ? data.creator[0] : data.creator;
+        } else if (data.video) {
+          errorMsg = Array.isArray(data.video) ? data.video[0] : data.video;
+        } else if (data.title) {
+          errorMsg = Array.isArray(data.title) ? data.title[0] : data.title;
+        } else if (data.non_field_errors) {
+          errorMsg = Array.isArray(data.non_field_errors) 
+            ? data.non_field_errors[0] 
+            : data.non_field_errors;
+        } else {
+          errorMsg = JSON.stringify(data);
+        }
+      }
+
+      setError(errorMsg);
     } finally {
       setUploading(false);
     }
