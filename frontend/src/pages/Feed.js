@@ -1458,9 +1458,9 @@ export default function Feed() {
                               [reel.id]: e.target.value,
                             }))
                           }
-                          onKeyDown={(e) =>
-                            e.key === "Enter" && addComment(reel.id)
-                          }
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") e.preventDefault();
+                          }}
                         />
                         <button
                           className={`ig-post-btn ${
@@ -1702,9 +1702,9 @@ export default function Feed() {
                       [currentReel.id]: e.target.value,
                     }))
                   }
-                  onKeyDown={(e) =>
-                    e.key === "Enter" && addComment(currentReel.id)
-                  }
+                   onKeyDown={(e) => {
+                    if (e.key === "Enter") e.preventDefault();
+                    }}
                 />
                 <button onClick={() => addComment(currentReel.id)}>Post</button>
               </div>
